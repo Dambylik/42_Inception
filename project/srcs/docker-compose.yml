@@ -36,6 +36,19 @@ services:
       - db-volume:/var/lib/mysql
     restart: always
 
+  adminer:
+    build:
+      context: .
+      dockerfile: requirements/bonus/adminer/Dockerfile
+    container_name: adminer
+    depends_on:
+      - mariadb
+    ports:
+      - "8080:8080"
+    networks:
+     - inception
+    restart: always
+
   wordpress:
     build:
       context: .
@@ -78,6 +91,15 @@ services:
       - wp-volume:/var/www/
     networks:
      - inception
+    restart: always
+
+  website:
+    build:
+      context: .
+      dockerfile: requirements/bonus/website/Dockerfile
+    container_name: website
+    ports:
+      - "80:80"
     restart: always
 
 volumes:
