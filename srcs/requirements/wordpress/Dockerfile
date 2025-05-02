@@ -7,7 +7,7 @@ ARG PHP_VERSION=82 \
 
 RUN apk update && apk upgrade && apk add --no-cache \
     php${PHP_VERSION} \
-    
+    php${PHP_VERSION}-cli \
     php${PHP_VERSION}-fpm \
     php${PHP_VERSION}-mysqli \
     php${PHP_VERSION}-json \
