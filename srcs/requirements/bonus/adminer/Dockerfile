@@ -1,4 +1,4 @@
-FROM alpine:3.17
+FROM alpine:3.20
 
 ARG PHP_VERSION=8
 
@@ -32,4 +32,4 @@ RUN wget https://github.com/vrana/adminer/releases/download/v4.8.1/adminer-4.8.1
 EXPOSE 8080
 
 # Use hardcoded path to PHP instead of variable
-CMD	[ "/usr/bin/php8", "-S", "[::]:8080", "-t", "/var/www" ]
+CMD	[ "php", "-S", "[::]:8080", "-t", "/var/www" ]
