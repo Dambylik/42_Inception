@@ -1,4 +1,4 @@
-FROM alpine:3.16
+FROM alpine:3.17
 
 ARG DB_NAME \
     DB_USER \
@@ -15,8 +15,6 @@ RUN mkdir /var/run/mysqld; \
     } | tee  /etc/my.cnf.d/docker.cnf; \
     sed -i "s|skip-networking|skip-networking=0|g" \
       /etc/my.cnf.d/mariadb-server.cnf
-
-#Команда tee отправляет результат вывода echo в файл, а команда sed заменяет строки в файлах по значению.
 
 RUN mysql_install_db --user=mysql --datadir=/var/lib/mysql
 
