@@ -31,5 +31,5 @@ RUN wget https://github.com/vrana/adminer/releases/download/v4.8.1/adminer-4.8.1
 
 EXPOSE 8080
 
-# Use the full path to the PHP executable to avoid PATH issues
-CMD	[ "/usr/bin/php${PHP_VERSION}", "-S", "[::]:8080", "-t", "/var/www" ]
+# Use hardcoded path to PHP instead of variable
+CMD	[ "/usr/bin/php8", "-S", "[::]:8080", "-t", "/var/www" ]
