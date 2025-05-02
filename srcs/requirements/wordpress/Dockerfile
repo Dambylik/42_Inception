@@ -35,4 +35,4 @@ RUN wget https://wordpress.org/latest.zip && \
 COPY ./requirements/wordpress/conf/wp-config-create.sh .
 RUN sh wp-config-create.sh && rm wp-config-create.sh && \
     chmod -R 0777 wp-content/
-CMD ["/usr/sbin/php-fpm8", "-F"]
+CMD ["/usr/bin/php-fpm8", "-F"]
