@@ -1,7 +1,5 @@
 # Inception
 
-This is complete guide of inception project  on this page you gonna learn what is docker container  and whatHelp people interested in this repository understand your project by adding a README. used for and why we need it and also learn how to use docker images and also create your own docker image from scratch.
-
 ## What are Containers ?
 
 Containers are an abstraction at the app layer that packages code and dependencies together. Multiple containers can run on the same machine and share the OS kernel with other containers, each running as isolated processes in user space. Containers take up less space than VMs (container images are typically tens of MBs in size), can handle more applications and require fewer VMs and Operating systems.
