@@ -1,45 +1,28 @@
-FROM alpine:3.20
+FROM debian:bullseye
 
-ARG PHP_VERSION=82 \
-    DB_NAME \
-    DB_USER \
-    DB_PASS
+ENV DEBIAN_FRONTEND=noninteractive
 
-RUN apk update && apk upgrade && apk add --no-cache \
-    php${PHP_VERSION} \
-    php${PHP_VERSION}-cli \
-    php${PHP_VERSION}-fpm \
-    php${PHP_VERSION}-mysqli \
-    php${PHP_VERSION}-json \
-    php${PHP_VERSION}-curl \
-    php${PHP_VERSION}-dom \
-    php${PHP_VERSION}-exif \
-    php${PHP_VERSION}-fileinfo \
-    php${PHP_VERSION}-mbstring \
-    php${PHP_VERSION}-openssl \
-    php${PHP_VERSION}-xml \
-    php${PHP_VERSION}-zip \
-    php${PHP_VERSION}-redis \
-    wget \
-    unzip && \
-    sed -i "s|listen = 127.0.0.1:9000|listen = 9000|g" \
-      /etc/php${PHP_VERSION}/php-fpm.d/www.conf && \
-    sed -i "s|;listen.owner = nobody|listen.owner = nobody|g" \
-      /etc/php${PHP_VERSION}/php-fpm.d/www.conf && \
-    sed -i "s|;listen.group = nobody|listen.group = nobody|g" \
-      /etc/php${PHP_VERSION}/php-fpm.d/www.conf && \
-    rm -rf /var/cache/apk/*
+RUN apt-get update && apt-get install -y apt-utils
 
-WORKDIR /var/www
+RUN apt-get update \
+    && apt-get install wget curl php-mysql php7.4-fpm netcat-traditional php7.4-redis redis-tools -y \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
 
-RUN wget https://wordpress.org/latest.zip && \
-    unzip latest.zip && \
-    cp -rf wordpress/* . && \
-    rm -rf wordpress latest.zip
+WORKDIR /var/www/wordpress
 
-COPY ./requirements/wordpress/conf/wp-config-create.sh .
+RUN wget https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar \
+    && chmod +x wp-cli.phar \
+    && mv wp-cli.phar /usr/local/bin/wp
 
-RUN sh wp-config-create.sh && rm wp-config-create.sh && \
-    chmod -R 0777 wp-content/
+	
+RUN         mv /etc/php/7.4/fpm/pool.d/www.conf /etc/php/7.4/fpm/pool.d/www.conf.default
+COPY        ./conf/www.conf /etc/php/7.4/fpm/pool.d/
 
-CMD ["/usr/sbin/php-fpm82", "-F"]
+COPY ./tools /execute
+RUN chmod -R +x /execute
+
+EXPOSE 9000/tcp
+
+ENTRYPOINT ["sh", "/execute/setup.sh" ]
+CMD ["/usr/sbin/php-fpm7.4", "-F"]

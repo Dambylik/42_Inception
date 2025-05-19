@@ -1,60 +1,102 @@
-# **************************************************************************** #
-#                                                                              #
-#                                                         :::      ::::::::    #
-#    Makefile                                           :+:      :+:    :+:    #
-#                                                     +:+ +:+         +:+      #
-#    By: okapshai <okapshai@student.42.fr>          +#+  +:+       +#+         #
-#                                                 +#+#+#+#+#+   +#+            #
-#    Created: 2024/12/09 17:02:11 by okapshai          #+#    #+#              #
-#    Updated: 2025/03/25 16:45:19 by okapshai         ###   ########.fr        #
-#                                                                              #
-# **************************************************************************** #
+NAME = inception
 
-# NAME
-name = inception
+NGINX       := nginx
+WORDPRESS   := wordpress
+MARIADB     := mariadb
 
-###########
-# COLORS #
-###########
-GREEN = '\033[0;32m'
-CYAN = '\033[0;36m'
-WHITE = '\033[0;37m'
-YELLOW = '\033[33m'
-MAGENTA = '\033[35m'
-RED = '\033[31m'
+SRCS        := srcs
+COMPOSE_FILE := $(SRCS)/docker-compose.yml
+REQ_DIR     := $(SRCS)/requirements
 
+VOLUMES_PATH := ~/data
+MARIADB_VOL  := $(VOLUMES_PATH)/mariadb
+WORDPRESS_VOL := $(VOLUMES_PATH)/wordpress
 
-all:
-	@printf 🚀 "Launch configuration ${name}...\n"
-	@bash srcs/requirements/wordpress/tools/make_dir.sh
-	@docker-compose -f ./srcs/docker-compose.yml --env-file srcs/.env up -d
+BOLD        := $(shell echo -e "\033[1m")
+RESET       := $(shell echo -e "\033[0m")
+GREEN       := $(shell echo -e "\033[32m")
+YELLOW      := $(shell echo -e "\033[33m")
+RED         := $(shell echo -e "\033[31m")
+
+DOCKCOMP    := docker-compose -f $(COMPOSE_FILE)
+MKDIR       := mkdir -p
+RM          := rm -rf
+
+UP_FLAG := .flag
+
+all: .create_volumes up
+
+$(UP_FLAG):
+	@$(MKDIR) $(MARIADB_VOL) $(WORDPRESS_VOL)
+	@cd $(SRCS) && docker-compose up -d --build
+	@touch $(UP_FLAG)
+	@echo "$(BOLD)$(GREEN)Containers are up and running!$(RESET)"
+
+up: $(UP_FLAG)
 
 build:
-	@printf "Building configuration ${name}...\n"
-	@bash srcs/requirements/wordpress/tools/make_dir.sh
-	@docker-compose -f ./srcs/docker-compose.yml --env-file srcs/.env up -d --build
+	@echo "$(BOLD)$(YELLOW)Building containers...$(RESET)"
+	@cd $(SRCS) && docker-compose build
 
 down:
-	@printf 🚫 "Stopping configuration ${name}...\n"
-	@docker-compose -f ./srcs/docker-compose.yml --env-file srcs/.env down
+	@echo "$(BOLD)$(YELLOW)Stopping containers...$(RESET)"
+	@cd $(SRCS) && docker-compose down
+	@rm -f $(UP_FLAG)
 
-re: down
-	@printf 🚧 "Rebuild configuration ${name}...\n"
-	@docker-compose -f ./srcs/docker-compose.yml --env-file srcs/.env up -d --build
+restart: down up
 
-clean: down
-	@printf 🧹 "Cleaning configuration ${name}...\n"
-	@docker system prune -a
-	@sudo rm -rf ~/data/wordpress/*
-	@sudo rm -rf ~/data/mariadb/*
+logs:
+	@echo "$(BOLD)$(YELLOW)Showing logs...$(RESET)"
+	@cd $(SRCS) && docker-compose logs -f
 
-fclean:
-	
-	@docker stop $$(docker ps -qa)
-	@docker system prune --all --force --volumes
-	@docker network prune --force
-	@docker volume prune --force
-	@sudo rm -rf ~/data/wordpress/*
-	@sudo rm -rf ~/data/mariadb/*
+ps:
+	@cd $(SRCS) && docker-compose ps
 
-.PHONY	: all build down re clean fclean
+stop:
+	@echo "$(BOLD)$(YELLOW)Stopping containers...$(RESET)"
+	@cd $(SRCS) && docker-compose stop
+	@rm -f $(UP_FLAG)
+
+.create_volumes:
+	@$(MKDIR) $(MARIADB_VOL) $(WORDPRESS_VOL)
+	@echo "$(BOLD)$(GREEN)Volumes created at $(VOLUMES_PATH)$(RESET)"
+
+clean: stop
+	@echo "$(BOLD)$(YELLOW)Removing volumes...$(RESET)"
+	@$(RM) $(MARIADB_VOL) $(WORDPRESS_VOL)
+	@echo "$(BOLD)$(GREEN)Volumes removed$(RESET)"
+
+fclean: down
+	@echo "$(BOLD)$(YELLOW)Removing all Docker resources...$(RESET)"
+	@docker system prune -af
+	@sudo $(RM) -rf $(MARIADB_VOL) $(WORDPRESS_VOL)
+	@sudo $(RM) -rf $(WORDPRESS_VOL)
+	@echo "$(BOLD)$(GREEN)All Docker resources removed$(RESET)"
+
+eval:
+	@$(RM) $(UP_FLAG)
+	@if [ -n "$$(docker ps -qa)" ]; then \
+		echo "$(BOLD)$(YELLOW)Stopping containers...$(RESET)"; \
+		docker stop $$(docker ps -qa) > /dev/null 2>&1 || true; \
+	fi
+	@if [ -n "$$(docker ps -qa)" ]; then \
+		echo "$(BOLD)$(YELLOW)Removing containers...$(RESET)"; \
+		docker rm $$(docker ps -qa) > /dev/null 2>&1 || true; \
+	fi
+	@if [ -n "$$(docker images -qa)" ]; then \
+		echo "$(BOLD)$(YELLOW)Removing images...$(RESET)"; \
+		docker rmi -f $$(docker images -qa) > /dev/null 2>&1 || true; \
+	fi
+	@if [ -n "$$(docker volume ls -q)" ]; then \
+		echo "$(BOLD)$(YELLOW)Removing volumes...$(RESET)"; \
+		docker volume rm $$(docker volume ls -q) > /dev/null 2>&1 || true; \
+	fi
+	@if [ -n "$$(docker network ls -q --filter type=custom)" ]; then \
+		echo "$(BOLD)$(YELLOW)Removing networks...$(RESET)"; \
+		docker network rm $$(docker network ls -q --filter type=custom) > /dev/null 2>&1 || true; \
+	fi
+	@echo "$(BOLD)$(GREEN)Environment ready for evaluation...$(RESET)"
+
+re: fclean all
+
+.PHONY: all up build down restart logs ps stop clean fclean eval re

@@ -1,120 +1,70 @@
+version: '3'
 
 services:
-  nginx:
-    build:
-      context: .
-      dockerfile: requirements/nginx/Dockerfile
-    container_name: nginx
-    depends_on:
-      - wordpress
-    ports:
-      - "443:443"
-    networks:
-      - inception
-    volumes:
-      - ./requirements/nginx/conf/:/etc/nginx/http.d/
-      - ./requirements/nginx/tools:/etc/nginx/ssl/
-      - wp-volume:/var/www/
-    restart: always
 
   mariadb:
-    build:
-      context: .
-      dockerfile: requirements/mariadb/Dockerfile
-      args:
-        DB_NAME: ${DB_NAME}
-        DB_USER: ${DB_USER}
-        DB_PASS: ${DB_PASS}
-        DB_ROOT: ${DB_ROOT}
+    image: mariadb
     container_name: mariadb
+    build:
+      context: ./requirements/mariadb
+      dockerfile: Dockerfile
+    volumes:
+     - mariadb_data:/var/lib/mysql
     ports:
-      - "3306:3306"
+      - 3306:3306
+    env_file: .env
     networks:
       - inception
-    volumes:
-      - db-volume:/var/lib/mysql
-    restart: always
-
-  adminer:
-    build:
-      context: .
-      dockerfile: requirements/bonus/adminer/Dockerfile
-    container_name: adminer
-    depends_on:
-      - mariadb
-    ports:
-      - "8080:8080"
-    networks:
-     - inception
-    restart: always
+    restart: unless-stopped
 
   wordpress:
-    build:
-      context: .
-      dockerfile: requirements/wordpress/Dockerfile
-      args:
-        DB_NAME: ${DB_NAME}
-        DB_USER: ${DB_USER}
-        DB_PASS: ${DB_PASS}
+    image: wordpress
     container_name: wordpress
+    build:
+      context: ./requirements/wordpress
+      dockerfile: Dockerfile
+    volumes:
+      - wordpress_data:/var/www/html
+    ports:
+      - 9000:9000
+    env_file: .env
     depends_on:
       - mariadb
-    restart: always
     networks:
       - inception
-    volumes:
-      - wp-volume:/var/www/
+    restart: unless-stopped
 
-  redis:
+  nginx:
+    image: nginx
+    container_name: nginx
     build:
-      context: .
-      dockerfile: requirements/bonus/redis/Dockerfile
-    container_name: redis
+      context: ./requirements/nginx
+      dockerfile: Dockerfile
+    volumes:
+      - wordpress_data:/var/www/html
     ports:
-      - "6379:6379"
+      - 443:443
+    env_file: .env
+    depends_on:
+      - wordpress
     networks:
       - inception
-    restart: always
-  
-  vsftpd:
-    build:
-      context: .
-      dockerfile: requirements/bonus/vsftpd/Dockerfile
-      args:
-        FTP_USR: ${FTP_USR}
-        FTP_PWD: ${FTP_PWD}
-    container_name: vsftpd
-    ports:
-      - "21:21"
-    volumes:
-      - wp-volume:/var/www/
-    networks:
-     - inception
-    restart: always
-
-  website:
-    build:
-      context: .
-      dockerfile: requirements/bonus/website/Dockerfile
-    container_name: website
-    ports:
-      - "8081:80"
-    restart: always
+    restart: unless-stopped
 
 volumes:
-  wp-volume:
+  mariadb_data:
+    driver: local
     driver_opts:
-      o: bind
       type: none
-      device: /home/${USER}/data/wordpress
-
-  db-volume:
+      o: bind
+      device: /home/okapshai/data/mariadb
+  wordpress_data:
+    driver: local
     driver_opts:
-      o: bind
       type: none
-      device: /home/${USER}/data/mariadb
+      o: bind
+      device: /home/okapshai/data/wordpress
 
 networks:
-    inception:
-        driver: bridge
-
+  inception:
+    driver: bridge

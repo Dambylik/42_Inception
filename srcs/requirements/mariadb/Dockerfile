@@ -1,28 +1,32 @@
-FROM alpine:3.20
+FROM debian:bullseye
 
-ARG DB_NAME \
-    DB_USER \
-    DB_PASS
+# Configure debconf to use non-interactive frontend
+ENV DEBIAN_FRONTEND=noninteractive
 
-RUN apk update && apk add --no-cache mariadb mariadb-client
+# Install apt-utils first to avoid warnings
+RUN apt-get update && apt-get install -y apt-utils
 
-RUN mkdir /var/run/mysqld; \
-    chmod 777 /var/run/mysqld; \
-    { echo '[mysqld]'; \
-      echo 'skip-host-cache'; \
-      echo 'skip-name-resolve'; \
-      echo 'bind-address=0.0.0.0'; \
-    } | tee  /etc/my.cnf.d/docker.cnf; \
-    sed -i "s|skip-networking|skip-networking=0|g" \
-      /etc/my.cnf.d/mariadb-server.cnf
+# Installer MariaDB et nettoyer
+RUN apt-get update && apt-get install -y mariadb-server \
+    && apt-get clean && rm -rf /var/lib/apt/lists/*
 
-RUN mysql_install_db --user=mysql --datadir=/var/lib/mysql
+# Configurer les permissions
+RUN mkdir -p /var/run/mysqld /var/lib/mysql /etc/mysql \
+    && chown -R mysql:mysql /var/run/mysqld /var/lib/mysql /etc/mysql \
+    && chmod -R 770 /var/run/mysqld /var/lib/mysql /etc/mysql
 
+# Définir le répertoire de travail
+WORKDIR /workspace
+
+# Copier les fichiers nécessaires
+COPY ./tools/setup.sh /setup.sh
+COPY ./conf/my.cnf /etc/mysql/mariadb.conf.d/my.cnf
+
+# Rendre le script exécutable
+RUN chmod +x /setup.sh
+
+# Exposer le port MySQL
 EXPOSE 3306
 
-COPY requirements/mariadb/conf/create_db.sh .
-RUN sh create_db.sh && rm create_db.sh
-USER mysql
-CMD ["/usr/bin/mysqld", "--skip-log-error"]
-
-
+# Lancer le script d'initialisation puis MariaDB
+ENTRYPOINT ["/setup.sh"]
