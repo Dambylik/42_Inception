@@ -37,8 +37,6 @@ but you can be asking your self why not use virtual machine it might be good ide
 
 # Let’s go deeper on how Docker Engine works in details.
 
-![Screen Shot 2022-11-24 at 8.29.31 PM.png](Inception_42/Screen_Shot_2022-11-24_at_8.29.31_PM.png)
-
 The Docker engine is the core component of Docker. It is a lightweight runtime and packaging tool that bundles your application and its dependencies into a single package, called a container. The Docker engine includes the Docker daemon, which is a background process that manages Docker containers, and the Docker client, which is a command-line tool that allows you to interact with the Docker daemon.
 
 Here's how the Docker engine works:
@@ -49,7 +47,7 @@ Here's how the Docker engine works:
 4. The Docker engine provides a secure and isolated environment for the application to run in, and it also manages resources such as CPU, memory, and storage for the container.
 5. You can use the Docker client to view, stop, and manage the containers running on your system. You can also use the Docker client to push the Docker image to a registry, such as Docker Hub, so that it can be shared with others.
 
-# Now After we understand what is Docker and how it works now we gonna introduce you to the Dockerfile and Docker-compose file .
+# DOCKERFILE
 
 - A Dockerfile is a text file that contains the instructions for building a Docker image. It specifies the base image to use, the dependencies and software to install, and any other configurations or scripts that are needed to set up the environment for the application to run.
 
@@ -71,18 +69,6 @@ Here are some key differences between a Dockerfile and a Docker Compose file:
 5. **`volumes`**: This is a key in a Docker Compose file that is used to define the persistent storage for your application. A volume is a piece of storage that is attached to a container and is used to store data that should persist even when the container is stopped or removed.
 6. **`networks`**: This is a key in a Docker Compose file that is used to define the networks that the containers should be connected to A network is a virtual network that is used to connect containers and allow them to communicate with each other.
 
-## What are the most common commands are used in docker ?
-
-1. **`docker build`**: Used to build a Docker image from a Dockerfile.
-2. **`docker run`**: Used to run a Docker container based on a Docker image.
-3. **`docker pull`**: Used to pull a Docker image from a registry, such as Docker Hub.
-4. **`docker push`**: Used to push a Docker image to a registry.
-5. **`docker ps`**: Used to list the running Docker containers on a system.
-6. **`docker stop`**: Used to stop a running Docker container.
-7. **`docker rm`**: Used to remove a Docker container.
-8. **`docker rmi`**: Used to remove a Docker image.
-9. **`docker exec`**: Used to execute a command in a running Docker container.
-10. **`docker logs`**: Used to view the logs for a Docker container.
 
 ## DOCKER COMPOSE
 
@@ -90,21 +76,7 @@ Docker Compose is a tool for defining and running multi-container Docker applica
 
 Using Docker Compose can simplify the process of managing multi-container applications by allowing you to define all of your services in a single place and easily start and stop them. It also makes it easy to scale your application by allowing you to increase or decrease the number of replicas of a service.
 
-## What are the most common commands are used in docker-compose ?
-
-- **`up`**: Create and start containers
-- **`down`**: Stop and remove containers, networks, images, and volumes
-- **`start`**: Start existing containers
-- **`stop`**: Stop running containers
-- **`restart`**: Restart running containers
-- **`build`**: Build images
-- **`ps`**: List containers
-- **`logs`**: View output from containers
-- **`exec`**: Run a command in a running container
-- **`pull`**: Pull images from a registry
-- **`push`**: Push images to a registry
-
-## What are DOCKER NETWORKS
+## DOCKER NETWORKS
 
 In Docker, a network is a virtual software defined network that connects Docker containers. It allows containers to communicate with each other and the outside world, and it provides an additional layer of abstraction over the underlying network infrastructure.
 
@@ -121,7 +93,7 @@ You can create and manage networks using the **`docker network`** command. For e
 
 - ressources for docker network : [https://www.youtube.com/watch?v=bKFMS5C4CG0](https://www.youtube.com/watch?v=bKFMS5C4CG0)
 
-## What are DOCKER VOLUMES
+## DOCKER VOLUMES
 
 In Docker, a volume is a persistent storage location that is used to store data from a container. Volumes are used to persist data from a container even after the container is deleted, and they can be shared between containers.
 
